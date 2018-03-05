@@ -32,8 +32,7 @@ module.exports = function onConversionStatusUpdate (rpc) {
     console.log(conversionData)
     return handleStatusUpdate(rpc, JSON.parse(conversionData), status)
   }).then(() => {
-    rpc.sendResult({}) // for JSON-RPC2 notifications
-    // rpc.sendResult('') // for JSON-RPC2 requests
+    rpc.sendResult({})
   }).catch(error => {
     rpc.sendError(error)
   })

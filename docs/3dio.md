@@ -20,4 +20,4 @@ Copy secret API key
 
 ### Done :)
 
-Continue to [firebase setup](firebase.md)
+Continue to [sendgrid setup](sendgrid.md)
