@@ -1,13 +1,11 @@
 const io3d = require('3dio')
 const configs = require('../configs.js')
-const firebaseAdmin = require('firebase-admin')
 const nodemailer = require('nodemailer')
 const sendGridTransport = require('nodemailer-sendgrid-transport')
 const handleError = require('./utils/handle-error.js')
+const getClient = require('./utils/redis_client.js')
 
 // internals
-
-const db = firebaseAdmin.database()
 const mailer = nodemailer.createTransport(sendGridTransport(configs.nodemailer.sendGrid))
 
 // init
@@ -19,18 +17,22 @@ module.exports = function onConversionStatusUpdate (rpc) {
 
   console.log(`Accepted API request "FloorPlan.onConversionStatusUpdate" with params:`, rpc.params)
 
+  var status
+
   // get conversion status
   getConversionStatusFrom3dio(rpc, conversionId).then(statusData => {
     // update status info in database
-    return writeToDatabase(rpc, conversionId, statusData)
+    status = statusData
+    return writeToDatabase(rpc, conversionId, JSON.stringify(statusData))
   }).then(() => {
     // get all conversion data from database
     return readFromDatabase (rpc, conversionId)
   }).then(conversionData => {
     // send out notifications etc.
-    return handleStatusUpdate(rpc, conversionData)
+    console.log(conversionData)
+    return handleStatusUpdate(rpc, JSON.parse(conversionData), status)
   }).then(() => {
-    rpc.end('') // for JSON-RPC2 notifications
+    rpc.sendResult({}) // for JSON-RPC2 notifications
     // rpc.sendResult('') // for JSON-RPC2 requests
   }).catch(error => {
     rpc.sendError(error)
@@ -50,7 +52,7 @@ function getConversionStatusFrom3dio (rpc, conversionId) {
 }
 
 function writeToDatabase (rpc, conversionId, statusData) {
-  return db.ref('conversions/' + conversionId).update(statusData).then(result => {
+  return getClient().setAsync('conversions/' + conversionId + '/status', statusData).then(result => {
     console.log(`Stored conversion status update to database`)
     return result
   }).catch(error => {
@@ -59,17 +61,16 @@ function writeToDatabase (rpc, conversionId, statusData) {
 }
 
 function readFromDatabase (rpc, conversionId) {
-  return db.ref('conversions/' + conversionId).once('value').then(snapshot => {
-    var conversionData = snapshot.exportVal()
+  return getClient().getAsync('conversions/' + conversionId).then(result => {
     console.log(`Read conversion data from database`)
-    return conversionData
+    return result
   }).catch(error => {
     return handleError('Error reading from database.', error, rpc)
   })
 }
 
-function handleStatusUpdate (rpc, conversionData) {
-  const status = conversionData.status
+function handleStatusUpdate (rpc, conversionData, statusData) {
+  const status = statusData.status
   const toEmail = conversionData.customer.email
 
   if (status === 'COMPLETED') {
@@ -100,11 +101,11 @@ function handleStatusUpdate (rpc, conversionData) {
 
   }  else if (status === 'IN_PROGRESS') {
     // not a status update although there should be one
-    return handleError(`Error in conversion status update.`, error, rpc)
+    return handleError(`Error in conversion status update.`, 'still in progress', rpc)
 
   }  else {
     // unknown status
-    return handleError(`Error: Unknown conversion status: ${status}.`, error, rpc)
+    return handleError(`Error: Unknown conversion status: ${status}.`, 'status unknown', rpc)
 
   }
 }

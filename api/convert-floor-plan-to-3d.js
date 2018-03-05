@@ -1,14 +1,12 @@
 const url = require('url')
 const io3d = require('3dio')
-const firebaseAdmin = require('firebase-admin')
 const nodemailer = require('nodemailer')
 const sendGridTransport = require('nodemailer-sendgrid-transport')
 const configs = require('../configs.js')
 const handleError = require('./utils/handle-error.js')
+const getClient = require('./utils/redis_client.js')
 
 // internals
-
-const db = firebaseAdmin.database()
 const mailer = nodemailer.createTransport(sendGridTransport(configs.nodemailer.sendGrid))
 
 // main
@@ -41,7 +39,7 @@ module.exports = function convertFloorPlanTo3d (rpc) {
   // request floor plan conversion from 3d.io
   sendConversionRequestTo3dio(rpc, floorPlan, address).then(conversionId => {
     // stora info to datbase
-    return writeToDatabase(rpc, conversionId, conversionData).then(() => {
+    return writeToDatabase(rpc, conversionId, JSON.stringify(conversionData)).then(() => {
       // send notification to customer that
       return sendEmailToCustomer(rpc, conversionId, conversionData)
     }).then(() => {
@@ -52,7 +50,6 @@ module.exports = function convertFloorPlanTo3d (rpc) {
   }).catch(error => {
     rpc.sendError(error)
   })
-
 }
 
 // private methods
@@ -61,7 +58,7 @@ function sendConversionRequestTo3dio (rpc, floorPlan, address) {
   return io3d.floorPlan.convertToBasic3dModel({
     floorPlan: floorPlan,
     address: address,
-    callback: configs.url
+    callback: 'configs.url'
   }).then(conversionId => {
     console.log(`3d.io API has accepted floor plan conversion request`)
     return conversionId
@@ -71,7 +68,7 @@ function sendConversionRequestTo3dio (rpc, floorPlan, address) {
 }
 
 function writeToDatabase (rpc, conversionId, conversionData) {
-  return db.ref('conversions/' + conversionId).set(conversionData).then(result => {
+  return getClient().setAsync('conversions/' + conversionId, conversionData).then(result => {
     console.log(`Stored conversion data to database`)
     return result
   }).catch(error => {

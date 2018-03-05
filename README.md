@@ -8,19 +8,10 @@ Live demo: https://spaces.archilogic.com/order
 
 ## Install
 
-### 1. **Deploy app to heroku by clicking this button:**
-
-<a href="https://heroku.com/deploy?template=https://github.com/archilogic-com/3dio-floor-plan-app/tree/master">
-  <img src="https://www.herokucdn.com/deploy/button.svg" alt="Deploy">
-</a>
-
-### 2. **Setup services:**
-
+### 1. **Setup services:**
 
 * [**Setup 3d.io**](docs/3dio.md) - Floor plan conversion service
-* [**Setup Firebase**](docs/firebase.md) - Database service
 * [**Setup SendGrid**](docs/sendgrid.md) - Email service
-* [**ngrok.com**](https://ngrok.com) - Public tunnel to your localhost for testing (optional)
 
 ### 3. **Set environment variables**
 
@@ -31,9 +22,7 @@ Name | Notes
 **EMAIL_ADMIN** | Email of the administrator responsible for this server. Error notifications will be send here.<br>Example: `admin@your-domain.com`
 **IO3D_SECRET_API_KEY** | Example: `51ebcf63-d5d...`
 **SENDGRID_API_KEY** | Example: `SG.wBcemOAdRZ-yC-ZwzVhS...`
-**FIREBASE_PRIVATE_KEY** | Example: `-----BEGIN PRIVATE KEY-----\nMIIIBADA...`
-**FIREBASE_CLIENT_EMAIL** | Example: `xyz@project-id.iam.gserviceaccount.com`
-**FIREBASE_DATABASE_URL** | Example: `https://your-project-id.firebaseio.com`
+**REDIS_URL** | Example: `redis://localhost:6379`
 
 ### 4. **Optional: Modify email messages to your customers in:**
 * [api/convert-floor-plan-to-3d.js](https://github.com/archilogic-com/3dio-floor-plan-app/blob/master/api/convert-floor-plan-to-3d.js#L86)

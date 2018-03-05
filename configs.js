@@ -9,7 +9,8 @@ module.exports = {
   // website domains which will be allowed to use this API (CORS)
   corsAllowedDomains: [
     process.env.PUBLIC_SERVER_URL.replace('https://','').replace('http://',''),
-    'localhost'
+    'localhost',
+    'localhost:3000'
   ],
 
   // email configs
@@ -28,15 +29,7 @@ module.exports = {
   // get your 3d.io secret API key from: https://3d.io/dev-dashboard/
   secretApiKey: process.env.IO3D_SECRET_API_KEY,
 
-  // database (using firebase API)
-  // feel free to replace this with configs specific to your database layer of choise
-  firebase: {
-    serviceAccount: {
-      private_key: process.env.FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'), // important: replacing '\\n' with '\n' ensures that key will be parsed correctly
-      client_email: process.env.FIREBASE_CLIENT_EMAIL
-    },
-    databaseUrl: process.env.FIREBASE_DATABASE_URL
-  },
+  redis_url: process.env.REDIS_URL,
 
   // email (using nodemailer module and sendGrid API)
   // feel free to replace this with configs specific to your email service of choise
