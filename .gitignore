@@ -171,3 +171,5 @@ node_modules
 releaserun.bat
 run.sh
 run.bat
+
+env.sh

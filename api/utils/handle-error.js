@@ -23,7 +23,7 @@ module.exports = function handleError (shortMessage, error, rpc) {
   // notify admin
   mailer.sendMail({
     to: [configs.adminEmail],
-    from: configs.adminEmail,
+    from: configs.fromEmail,
     subject: shortMessage,
     text: shortMessage + '\n\n' + adminMessage
   }).catch(error => {

@@ -32,11 +32,10 @@ module.exports = function onConversionStatusUpdate (rpc) {
     console.log(conversionData)
     return handleStatusUpdate(rpc, JSON.parse(conversionData), status)
   }).then(() => {
-    rpc.sendResult({})
+    rpc.sendResult({sceneID: status.sceneId})
   }).catch(error => {
     rpc.sendError(error)
   })
-
 }
 
 // private methods
@@ -74,7 +73,7 @@ function handleStatusUpdate (rpc, conversionData, statusData) {
 
   if (status === 'COMPLETED') {
     console.log(`Floor plan conversion successful`)
-    const sceneUrl = io3d.scene.getViewerUrl({ sceneId: conversionData.sceneId })
+    const sceneUrl = io3d.scene.getViewerUrl({ sceneId: statusData.sceneId })
     const emailBody = `Your 3D model is ready: ${sceneUrl}`
     return sendEmailToCustomer(rpc, {
       to: [toEmail],
@@ -89,7 +88,7 @@ function handleStatusUpdate (rpc, conversionData, statusData) {
     // conversion has unfortunately been reject. most likely due to one of the following reasons:
     // NO_FLOORPLAN, UNCLEAR_FLOORPLAN, MULTIPLE_LEVELS, INCLINED_CEILING
     // Read more about converion limitiations: https://3d.io/docs/api/1/basic-3d-model.html
-    const emailBody = `Sorry, your floor plan could not be converted into a 3d model. Reason: ${conversionData.rejectionReason}`
+    const emailBody = `Sorry, your floor plan could not be converted into a 3d model. Reason: ${statusData.rejectionReason}`
     return sendEmailToCustomer(rpc, {
       to: [toEmail],
       from: configs.fromEmail,
